@@ -13,13 +13,30 @@
 
 int sh( int argc, char **argv, char **envp )
 {
+  //prefix to prompt, changed with 'prompt' command
   char *prompt = calloc(PROMPTMAX, sizeof(char));
+  //user input
   char *commandline = calloc(MAX_CANON, sizeof(char));
+  //command = command that was run
+  //arg = ???
+  //commandpath = path to command (which(command, pathList))
+  //p = ???
+  //pwd = pointer to working dir from getcwd()
+  //owd = copy of pwd???
   char *command, *arg, *commandpath, *p, *pwd, *owd;
+  //array of arguments of length argsct
   char **args = calloc(MAXARGS, sizeof(char*));
+  //uid = username
+  //i = ???iterator???
+  //status = exit status int
+  //argsct = number of args in args
+  //go = whether prompt is still running(1) or not (0)
   int uid, i, status, argsct, go = 1;
+  
   struct passwd *password_entry;
+  
   char *homedir;
+  
   struct pathelement *pathlist;
 
   uid = getuid();
@@ -34,32 +51,56 @@ int sh( int argc, char **argv, char **envp )
     }
   owd = calloc(strlen(pwd) + 1, sizeof(char));
   memcpy(owd, pwd, strlen(pwd));
-  prompt[0] = ' '; prompt[1] = '\0';
+  prompt[0] = '\0';
 
   /* Put PATH into a linked list */
   pathlist = get_path();
 
-  while ( go )
-    {
-      printf("» ");
-      fflush(NULL);
-      /* get command line and process */
-      if (!fgets(prompt, PROMPTMAX, stdin))
-	return 0;
-      /* check for each built in command and implement */
 
+  /*******MAIN LOOP*******/
+  while(go)
+    {
+      /* print prompt */
+      printf("%s:%s» ", prompt, owd);
+      fflush(NULL);
+      
+      /* get command line and process */
+      if (!fgets(commandline, MAX_CANON, stdin)) {
+	//if EOF or C-d, don't quit
+	printf("\ntype \'exit\' to exit\n");
+	continue;
+      }
+      /* process the command */
+      /* command holds the command to be run, args holds arguments */
+      /* if argsct is -1, command is null*/
+      argsct = parse_command(commandline, command, args);
+      
+      /* check for each built in command and implement */
+      if(1==1) {
+	printf("run built in command\n");
+      }
       /*  else  program to exec */
       else {
-	/* find it */
-	/* do fork(), execve() and waitpid() */
+	/* find it /*
+	   /* do fork(), execve() and waitpid() */
 	if (1 == 1)
-	  printf("lol\n");
-      else
-        fprintf(stderr, "%s: Command not found.\n", args[0]);
+	  printf("do for, execve and waitpid\n");
+	else
+	  fprintf(stderr, "%s: Command not found.\n", args[0]);
       }
     }
   return 0;
 } /* sh() */
+
+
+
+
+
+
+
+/****************************************************************/
+/********************** Built-in commands ***********************/
+/****************************************************************/
 
 char *which(char *command, struct pathelement *pathlist )
 {
@@ -78,3 +119,13 @@ void list ( char *dir )
   /* see man page for opendir() and readdir() and print out filenames for
      the directory passed */
 } /* list() */
+
+
+
+/****************************************************************/
+/*********************** Helper functions ***********************/
+/****************************************************************/
+
+int parse_command(char* commandline, char* command, char** args) {
+  return -1;
+}
