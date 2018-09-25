@@ -72,18 +72,11 @@ int sh( int argc, char **argv, char **envp )
       /* process the command */
       /* command holds the command to be run, args holds arguments */
       /* if argsct is -1, command is null*/
-      argsct = parse_command(commandline, &command, args);
-
-
-      //debug
-      printf("command: %s, argcount: %d\n", command, argsct);
-      for (int j = 0; j < argsct; j++) {
-	printf("%s\n", args[j]);
-      }
-      //debug
+      if((argsct = parse_command(commandline, &command, args)) == -1)
+	continue;
       
       /* check for each built in command and implement */
-      if(1==1) {
+      if(argsct != -1) {
 	printf("run built in command\n");
       }
       /*  else  program to exec */
