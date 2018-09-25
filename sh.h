@@ -10,7 +10,7 @@ void printenv(char **envp);
 /* takes the commandline and puts the command into command and args in args */
 /* returns a non-negative integer for the number of args in args */
 /* if no command, returns -1 */
-int parse_command(char* commandline, char* command, char** args);
+int parse_command(char* commandline, char** command, char** args);
 
 #define PROMPTMAX 32
 #define MAXARGS 10

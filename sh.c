@@ -40,9 +40,8 @@ int sh( int argc, char **argv, char **envp )
   struct pathelement *pathlist;
 
   uid = getuid();
-  password_entry = getpwuid(uid);               /* get passwd info */
-  homedir = password_entry->pw_dir;		/* Home directory to start
-						   out with*/
+  password_entry = getpwuid(uid); // get passwd info
+  homedir = password_entry->pw_dir; // Home directory to start out with
      
   if ( (pwd = getcwd(NULL, PATH_MAX+1)) == NULL )
     {
@@ -73,7 +72,15 @@ int sh( int argc, char **argv, char **envp )
       /* process the command */
       /* command holds the command to be run, args holds arguments */
       /* if argsct is -1, command is null*/
-      argsct = parse_command(commandline, command, args);
+      argsct = parse_command(commandline, &command, args);
+
+
+      //debug
+      printf("command: %s, argcount: %d\n", command, argsct);
+      for (int j = 0; j < argsct; j++) {
+	printf("%s\n", args[j]);
+      }
+      //debug
       
       /* check for each built in command and implement */
       if(1==1) {
@@ -83,7 +90,7 @@ int sh( int argc, char **argv, char **envp )
       else {
 	/* find it /*
 	   /* do fork(), execve() and waitpid() */
-	if (1 == 1)
+	if (1 == 2)
 	  printf("do for, execve and waitpid\n");
 	else
 	  fprintf(stderr, "%s: Command not found.\n", args[0]);
@@ -126,6 +133,33 @@ void list ( char *dir )
 /*********************** Helper functions ***********************/
 /****************************************************************/
 
-int parse_command(char* commandline, char* command, char** args) {
-  return -1;
+int parse_command(char* commandline, char** command, char** args) {
+  commandline[strlen(commandline) - 1] = '\0'; // strip newline
+  //saveptr for strtok_r() and delim char
+  char* saveptr;
+  const char* delim = " ";
+  //temp string to hold the intermediate result from strtok_r
+  char* temp;
+  
+  //extract command
+  temp = strtok_r(commandline, delim, &saveptr);
+
+  if(temp == NULL) {
+    return -1;
+  } else {
+    //allocate memory for the command and put the string in it
+    *command = malloc(sizeof(char) * (strlen(temp) + 1));
+    strcpy(*command, temp);
+    
+    //extract args
+    int i = 0;
+    temp = strtok_r(NULL, delim, &saveptr);
+    while (temp != NULL) {
+      args[i] = malloc(sizeof(char) * (strlen(temp) + 1));
+      strcpy(args[i], temp);
+      i++;
+      temp = strtok_r(NULL, delim, &saveptr);
+    }
+    return i;
+  }
 }
