@@ -74,10 +74,44 @@ int sh( int argc, char **argv, char **envp )
       /* if argsct is -1, command is null*/
       if((argsct = parse_command(commandline, &command, args)) == -1)
 	continue;
-      
+
+
+
       /* check for each built in command and implement */
-      if(argsct != -1) {
-	printf("run built in command\n");
+
+      //if command is exit with 0 args, exit
+      if(strcmp(command, "exit") == 0) {
+	if (argsct == 0) {
+	  go = 0;
+	  break;
+	} else {
+	  printf("%s: incorrect number of args, 0 expected\n", command);
+	  continue;
+	}
+      } else if(strcmp(command, "which") == 0) {
+
+      } else if(strcmp(command, "where") == 0) {
+
+      } else if(strcmp(command, "cd") == 0) {
+
+      } else if(strcmp(command, "pwd") == 0) {
+
+      } else if(strcmp(command, "list") == 0) {
+
+      } else if(strcmp(command, "pid") == 0) {
+
+      } else if(strcmp(command, "kill") == 0) {
+
+      } else if(strcmp(command, "prompt") == 0) {
+
+      } else if(strcmp(command, "printenv") == 0) {
+
+      } else if(strcmp(command, "alias") == 0) {
+
+      } else if(strcmp(command, "history") == 0) {
+
+      } else if(strcmp(command, "setenv") == 0) {
+
       }
       /*  else  program to exec */
       else {
@@ -86,9 +120,14 @@ int sh( int argc, char **argv, char **envp )
 	if (1 == 2)
 	  printf("do for, execve and waitpid\n");
 	else
-	  fprintf(stderr, "%s: Command not found.\n", args[0]);
+	  fprintf(stderr, "%s: Command not found.\n", command);
       }
     }
+  printf("exit\n");
+
+  // TODO
+  // RUN EXIT CODE HERE
+  
   return 0;
 } /* sh() */
 
