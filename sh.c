@@ -17,7 +17,7 @@ int sh( int argc, char **argv, char **envp )
   char *prompt = calloc(PROMPTMAX, sizeof(char));
   //user input
   char *commandline = calloc(MAX_CANON, sizeof(char));
-  //command = command that was run
+  //command = ???
   //arg = ???
   //commandpath = path to command (which(command, pathList))
   //p = ???
@@ -72,45 +72,43 @@ int sh( int argc, char **argv, char **envp )
       /* process the command */
       /* command holds the command to be run, args holds arguments */
       /* if argsct is -1, command is null*/
-      if((argsct = parse_command(commandline, &command, args)) == -1)
+      if((argsct = parse_command(commandline, args)) == 0)
 	continue;
-
-
 
       /* check for each built in command and implement */
 
       //if command is exit with 0 args, exit
-      if(strcmp(command, "exit") == 0) {
-	if (argsct == 0) {
+      if(strcmp(args[0], "exit") == 0) {
+	if (argsct == 1) {
 	  go = 0;
 	  break;
 	} else {
 	  printf("%s: incorrect number of args, 0 expected\n", command);
 	  continue;
 	}
-      } else if(strcmp(command, "which") == 0) {
+      } else if(strcmp(args[0], "which") == 0) {
 
-      } else if(strcmp(command, "where") == 0) {
+      } else if(strcmp(args[0], "where") == 0) {
 
-      } else if(strcmp(command, "cd") == 0) {
+      } else if(strcmp(args[0], "cd") == 0) {
 
-      } else if(strcmp(command, "pwd") == 0) {
+      } else if(strcmp(args[0], "pwd") == 0) {
 
-      } else if(strcmp(command, "list") == 0) {
+      } else if(strcmp(args[0], "list") == 0) {
 
-      } else if(strcmp(command, "pid") == 0) {
+      } else if(strcmp(args[0], "pid") == 0) {
 
-      } else if(strcmp(command, "kill") == 0) {
+      } else if(strcmp(args[0], "kill") == 0) {
 
-      } else if(strcmp(command, "prompt") == 0) {
+      } else if(strcmp(args[0], "prompt") == 0) {
 
-      } else if(strcmp(command, "printenv") == 0) {
+      } else if(strcmp(args[0], "printenv") == 0) {
 
-      } else if(strcmp(command, "alias") == 0) {
+      } else if(strcmp(args[0], "alias") == 0) {
 
-      } else if(strcmp(command, "history") == 0) {
+      } else if(strcmp(args[0], "history") == 0) {
 
-      } else if(strcmp(command, "setenv") == 0) {
+      } else if(strcmp(args[0], "setenv") == 0) {
 
       }
       /*  else  program to exec */
@@ -120,7 +118,7 @@ int sh( int argc, char **argv, char **envp )
 	if (1 == 2)
 	  printf("do for, execve and waitpid\n");
 	else
-	  fprintf(stderr, "%s: Command not found.\n", command);
+	  fprintf(stderr, "%s: Command not found.\n", args[0]);
       }
     }
   printf("exit\n");
@@ -165,7 +163,7 @@ void list ( char *dir )
 /*********************** Helper functions ***********************/
 /****************************************************************/
 
-int parse_command(char* commandline, char** command, char** args) {
+int parse_command(char* commandline, char** args) {
   commandline[strlen(commandline) - 1] = '\0'; // strip newline
   //saveptr for strtok_r() and delim char
   char* saveptr;
@@ -177,14 +175,14 @@ int parse_command(char* commandline, char** command, char** args) {
   temp = strtok_r(commandline, delim, &saveptr);
 
   if(temp == NULL) {
-    return -1;
+    return 0;
   } else {
     //allocate memory for the command and put the string in it
-    *command = malloc(sizeof(char) * (strlen(temp) + 1));
-    strcpy(*command, temp);
+    args[0] = malloc(sizeof(char) * (strlen(temp) + 1));
+    strcpy(args[0], temp);
     
     //extract args
-    int i = 0;
+    int i = 1;
     temp = strtok_r(NULL, delim, &saveptr);
     while (temp != NULL) {
       args[i] = malloc(sizeof(char) * (strlen(temp) + 1));
