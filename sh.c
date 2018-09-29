@@ -62,7 +62,7 @@ int sh( int argc, char **argv, char **envp )
       /* print prompt */
       printf("%s:%s» ", prompt, owd);
       fflush(NULL);
-      
+
       /* get command line and process */
       if (!fgets(commandline, MAX_CANON, stdin)) {
 	//if EOF or C-d, don't quit
