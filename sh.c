@@ -86,7 +86,8 @@ int sh( int argc, char **argv, char **envp )
 	  go = 0;
 	  break;
 	} else {
-	  printf("%s: incorrect number of args, 0 expected\n", command);
+	  printf("%s: incorrect number of args, 0 expected\n", args[0]);
+	  blank_args(argsct, args);
 	  continue;
 	}
       } else if(strcmp(args[0], "which") == 0) {
@@ -148,7 +149,7 @@ int sh( int argc, char **argv, char **envp )
   free(owd);
   blank_args(argsct, args);
   free(args);
-  free_path(pathlist);
+  //free_path(pathlist);
   return 0;
 }
 

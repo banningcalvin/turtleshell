@@ -46,8 +46,10 @@ struct pathelement *get_path()
 
 
 void free_path(struct pathelement *pathlist) {
+  //rewrite this
   struct pathelement *next = pathlist->next;
-  free(pathlist);
+  if(pathlist != NULL)
+    free(pathlist);
   while(next != NULL) {
     pathlist = next;
     next = pathlist->next;
