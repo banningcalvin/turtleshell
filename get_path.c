@@ -36,7 +36,8 @@ struct pathelement *get_path()
       tmp->next = calloc(1, sizeof(struct pathelement));
       tmp = tmp->next;
     }
-    tmp->element = p;	
+    tmp->element = calloc(strlen(p) + 1, sizeof(char));
+    strcpy(tmp->element, p);
     tmp->next = NULL;
   } while ( p = strtok(NULL, ":") );
   free(path);
@@ -49,7 +50,7 @@ void free_path(struct pathelement *pathlist) {
   struct pathelement *next;
   while(pathlist != NULL) {
     next = pathlist->next;
-    //free(pathlist->element);
+    free(pathlist->element);
     free(pathlist);
     pathlist = next;
   }
