@@ -11,6 +11,9 @@
    elements. */
 struct pathelement *get_path();
 
+/* free all elements in pathlist */
+void free_path(struct pathelement *pathlist);
+
 struct pathelement
 {
   char *element;			/* a dir in the path */
