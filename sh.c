@@ -11,6 +11,8 @@
 #include <signal.h>
 #include "sh.h"
 
+/* see header file for function descriptions */
+
 int sh( int argc, char **argv, char **envp )
 {
   /* prefix to prompt, changed with 'prompt' command */
@@ -57,8 +59,6 @@ int sh( int argc, char **argv, char **envp )
 
 
   /*******MAIN LOOP*******/
-  signal(SIGINT, siginthandler);
-  signal(SIGTSTP, sigtstphandler);
   while(go)
     {
       /* print prompt */
@@ -92,10 +92,16 @@ int sh( int argc, char **argv, char **envp )
 	}
       } else if(strcmp(args[0], "which") == 0) {
 	printf("Executing built-in command %s\n", args[0]);
-	which(args[1], pathlist);
+	if(argsct != 2) {
+	  printf("Incorrect number of args, 1 expected\n");
+	} else
+	  which(args[1], pathlist);
       } else if(strcmp(args[0], "where") == 0) {
 	printf("Executing built-in command %s\n", args[0]);
-	where(args[1], pathlist);
+	if(argsct != 2) {
+	  printf("Incorrect number of args, 1 expected\n");
+	} else
+	  where(args[1], pathlist);
       } else if(strcmp(args[0], "cd") == 0) {
 	printf("Executing built-in command %s\n", args[0]);
 	
@@ -141,8 +147,6 @@ int sh( int argc, char **argv, char **envp )
     }
   printf("exit\n");
 
-  /* TODO */
-  /* RUN EXIT CODE HERE */
   free(prompt);
   free(commandline);
   free(pwd);
@@ -158,13 +162,23 @@ int sh( int argc, char **argv, char **envp )
 /****************************************************************/
 /********************** Built-in commands ***********************/
 /****************************************************************/
+/* see header file for function descriptions */
 
 char *which(char *command, struct pathelement *pathlist) {
-  printf("argument: %s\n", command);
+  if(!pathlist) return NULL; /* empty pathlist */
+  char *path;
+
+  
+  return NULL;
 }
 
+/* list all instances */
 char *where(char *command, struct pathelement *pathlist) {
-  printf("argument: %s\n", command);
+  if(!pathlist) return NULL; /* empty pathlist */
+
+
+  
+  return NULL;
 }
 
 void list (char *dir) {
@@ -180,6 +194,7 @@ void printenv(char **envp) {
 /****************************************************************/
 /*********************** Helper functions ***********************/
 /****************************************************************/
+/* see header file for function descriptions */
 
 int parse_command(char* commandline, char** args) {
   commandline[strlen(commandline) - 1] = '\0'; /* strip newline */
@@ -217,11 +232,4 @@ void blank_args(int argsct, char **args) {
     free(args[i]);
     args[i] = NULL;
     }
-}
-
-void siginthandler(int sig_num) {
-  signal(SIGINT, siginthandler);
-}
-void sigtstphandler(int sig_num) {
-  signal(SIGTSTP, sigtstphandler);
 }
