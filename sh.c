@@ -53,7 +53,7 @@ int sh( int argc, char **argv, char **envp )
   prompt[0] = '\0';
 
   /* Put PATH into a linked list */
-  //pathlist = get_path();
+  pathlist = get_path();
 
 
   /*******MAIN LOOP*******/
@@ -149,7 +149,7 @@ int sh( int argc, char **argv, char **envp )
   free(owd);
   blank_args(argsct, args);
   free(args);
-  //free_path(pathlist);
+  free_path(pathlist);
   return 0;
 }
 
