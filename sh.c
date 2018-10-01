@@ -144,9 +144,34 @@ int sh( int argc, char **argv, char **envp )
       } else if(strcmp(args[0], "pid") == 0) { /************************* pid */
 	printf("Executing built-in command %s\n", args[0]);
 	printf("[%d]\n", getpid());
-      } else if(strcmp(args[0], "kill") == 0) {
+      } else if(strcmp(args[0], "kill") == 0) { /*********************** kill */
 	printf("Executing built-in command %s\n", args[0]);
-	
+	if(argsct < 2) {
+	  printf("%s: Too few arguments.\nusage: kill [-signum] pid\n", args[0]);
+	} else {
+	  if(args[1][0] == '-') { /* signal specified with flag */
+	    int sig = atoi(args[1]+1);
+	    if((sig > 64) || (sig < 1)) {
+	      printf("invalid signal flag. specify signal number between 1 and 64\n");
+	    } else {
+	      if(argsct < 3) {
+		printf("no pid specified\n");
+	      } else {
+		for(i = 2; i < argsct; i++) {
+		  int pid = atoi(args[i]);
+		  if(kill(pid, sig) == -1)
+		    printf("kill: %s: no such pid\n", args[i]);
+		}
+	      }
+	    }
+	  } else { /* just kill pid */
+	    for(i = 1; i < argsct; i++) {
+	      int pid = atoi(args[i]);
+	      if(kill(pid, 9) == -1)
+		printf("kill: %s: no such pid\n", args[i]);
+	    }
+	  }
+	}
       } else if(strcmp(args[0], "prompt") == 0) {
 	printf("Executing built-in command %s\n", args[0]);
 	
