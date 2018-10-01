@@ -195,7 +195,7 @@ int sh( int argc, char **argv, char **envp )
 	    i++;
 	  }
 	}
-      } else if(strcmp(args[0], "alias") == 0) {
+      } else if(strcmp(args[0], "alias") == 0) { /********************* alias */
 	printf("Executing built-in command %s\n", args[0]);
 	
       } else if(strcmp(args[0], "history") == 0) {
@@ -313,20 +313,6 @@ void list (char *dir) {
   closedir(d);
   return;
 }
-
-void printenv(char **envp) {
-  
-  /* if (argsct == 1) { */
-  /*   char **env; */
-  /*   for (env = environ; *env != 0; env++) printf("%s\n", *env); */
-  /* } else if (argsct == 2) { */
-  /*   char *env = getenv(args[0]); */
-  /*   if (env != NULL) */
-  /*     printf("%s\n", env); */
-  /* } else */
-  /*   printf("printenv: Too many arguments.\n"); */
-}
-
 
 
 /****************************************************************/

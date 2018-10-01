@@ -20,10 +20,6 @@ void cd(char **owd, char **pwd, char *homedir, char *arg);
      the directory passed */
 void list (char *dir);
 
-void printenv(char **envp);
-
-
-
 /*** helper functions ***/
 
 /* takes the commandline and puts the command into command and args in args */
