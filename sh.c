@@ -41,7 +41,8 @@ int sh( int argc, char **argv, char **envp )
   
   struct pathelement *pathlist;
   struct alias *aliaslist = NULL;
-
+  struct history *hist = NULL;
+  
   uid = getuid();
   password_entry = getpwuid(uid); /* get passwd info */
   homedir = password_entry->pw_dir; /* Home directory to start out with */
@@ -72,6 +73,8 @@ int sh( int argc, char **argv, char **envp )
 	printf("\ntype \'exit\' to exit\n");
 	continue;
       }
+
+      hist = add_history(hist, commandline);
       
       /* process the command */
       /* command holds the command to be run, args holds arguments */
@@ -210,11 +213,20 @@ int sh( int argc, char **argv, char **envp )
 	  break;
 	default:
 	  printf("Too many args. Use one or no arguments to print aliases\n");
-	  printf("or use 2 arguments to set a new alias");
+	  printf("or use 2 arguments to set a new alias\n");
 	}
-      } else if(strcmp(args[0], "history") == 0) {
+      } else if(strcmp(args[0], "history") == 0) { /***************** history */
 	printf("Executing built-in command %s\n", args[0]);
-	
+	switch(argsct) {
+	case 1:
+	  print_history(hist, 10);
+	  break;
+	case 2:
+	  print_history(hist, atoi(args[1]));
+	  break;
+	default:
+	  printf("%s: too many arguments\n", args[0]);
+	}
       } else if(strcmp(args[0], "setenv") == 0) {
 	printf("Executing built-in command %s\n", args[0]);
 	
@@ -241,6 +253,7 @@ int sh( int argc, char **argv, char **envp )
   free(args);
   free_path(pathlist);
   free_alias(aliaslist);
+  free_history(hist);
   return 0;
 }
 

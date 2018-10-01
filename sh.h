@@ -1,5 +1,6 @@
 #include "get_path.h"
 #include "alias.h"
+#include "history.h"
 
 int pid;
 int sh( int argc, char **argv, char **envp);
