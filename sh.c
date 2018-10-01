@@ -185,7 +185,8 @@ int sh( int argc, char **argv, char **envp )
 	//printenv();
 	if (argsct == 1) {
 	  char **env;
-	  for (env = envp; *env != 0; env++) printf("%s\n", *env);
+	  for (env = envp; *env != 0; env++)
+	    printf("%s\n", *env);
 	} else {
 	  char *env;
 	  int i = 1;
