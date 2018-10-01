@@ -227,10 +227,41 @@ int sh( int argc, char **argv, char **envp )
 	default:
 	  printf("%s: too many arguments\n", args[0]);
 	}
-      } else if(strcmp(args[0], "setenv") == 0) {
+      } else if(strcmp(args[0], "setenv") == 0) { /******************* setenv */
 	printf("Executing built-in command %s\n", args[0]);
-	
+	char **env;
+	switch(argsct) {
+	case 1: /* no args, do printenv */
+	  for (env = envp; *env != 0; env++)
+	    printf("%s\n", *env);
+	  break;
+	case 2: /* one arg - add empty env variable */
+	  setenv(args[1], "", 1);
+	  /* special case for home and path */
+	  if (strcmp(args[1], "PATH") == 0) {
+	    free_path(pathlist);
+	    pathlist = get_path();
+	  } else if(strcmp(args[1], "HOME")) {
+	    homedir = strcpy(homedir, "/");
+	  }
+	  break;
+	case 3: /* two args - add new env variable */
+	  setenv(args[2], args[3], 1);
+	  /* special case for home and path */
+	  if (strcmp(args[1], "PATH") == 0) {
+	    free_path(pathlist);
+	    pathlist = get_path(); // update path list
+	  } else if(strcmp(args[1], "HOME")) {
+	    homedir = strcpy(homedir, args[1]);
+	  }
+	  break;
+	default:
+	  printf("setenv: Too many arguments.\n");
+	}
       }
+      /****************************************************************/
+      /****************************************************************/
+      /****************************************************************/
       /*  else  program to exec */
       else {
 	/* find it */
