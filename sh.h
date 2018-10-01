@@ -1,4 +1,5 @@
 #include "get_path.h"
+#include "alias.h"
 
 int pid;
 int sh( int argc, char **argv, char **envp);
@@ -28,6 +29,7 @@ void list (char *dir);
 int parse_command(char* commandline, char** args);
 /* empty argsct number of  args */
 void blank_args(int argsct, char **args);
+
 
 #define PROMPTMAX 32
 #define MAXARGS 10

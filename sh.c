@@ -40,6 +40,7 @@ int sh( int argc, char **argv, char **envp )
   char *homedir;
   
   struct pathelement *pathlist;
+  struct alias *aliaslist = NULL;
 
   uid = getuid();
   password_entry = getpwuid(uid); /* get passwd info */
@@ -197,7 +198,20 @@ int sh( int argc, char **argv, char **envp )
 	}
       } else if(strcmp(args[0], "alias") == 0) { /********************* alias */
 	printf("Executing built-in command %s\n", args[0]);
-	
+	switch(argsct) {
+	case 1:
+	  print_alias(aliaslist, NULL);
+	  break;
+	case 2:
+	  print_alias(aliaslist, args[1]);
+	  break;
+	case 3:
+	  aliaslist = set_alias(aliaslist, args[1], args[2]);
+	  break;
+	default:
+	  printf("Too many args. Use one or no arguments to print aliases\n");
+	  printf("or use 2 arguments to set a new alias");
+	}
       } else if(strcmp(args[0], "history") == 0) {
 	printf("Executing built-in command %s\n", args[0]);
 	
@@ -226,6 +240,7 @@ int sh( int argc, char **argv, char **envp )
   blank_args(argsct, args);
   free(args);
   free_path(pathlist);
+  free_alias(aliaslist);
   return 0;
 }
 
@@ -290,7 +305,6 @@ void cd(char **owd, char **pwd, char *homedir, char *arg) {
   } else if(chdir(arg) == 0){ /* go to path if valid */
     strcpy(*pwd, *owd);
     getcwd(*owd, PATH_MAX+1);
-    printf("goto path\n");
     return;
   } else {
     printf("%s: no such directory\n", arg);

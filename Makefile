@@ -2,8 +2,8 @@
 CC=gcc
 #CC=gcc -Wall
 
-mysh: sh.o get_path.o main.c 
-	$(CC) -g main.c sh.o get_path.o -o mysh
+mysh: sh.o get_path.o alias.o main.c 
+	$(CC) -g main.c sh.o get_path.o alias.o -o mysh
 #	$(CC) -g main.c sh.o get_path.o bash_getcwd.o -o mysh
 
 sh.o: sh.c sh.h
@@ -12,5 +12,8 @@ sh.o: sh.c sh.h
 get_path.o: get_path.c get_path.h
 	$(CC) -g -c get_path.c
 
+alias.o: alias.c alias.h
+	$(CC) -g -c alias.c
+
 clean:
-	rm -rf sh.o get_path.o mysh *~
+	rm -rf *.o mysh *~
