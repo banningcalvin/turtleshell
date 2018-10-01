@@ -20,7 +20,7 @@ int sh( int argc, char **argv, char **envp )
   /* user input */
   char *commandline = calloc(MAX_CANON, sizeof(char));
   /* command = ??? */
-  /*  //arg = ??? */
+  /*  arg = ??? */
   /* commandpath = path to command (which(command, pathList)) */
   /* p = ??? */
   /* pwd = previous working directory */
@@ -121,7 +121,10 @@ int sh( int argc, char **argv, char **envp )
 	if(argsct > 2) {
 	  printf("%s: incorrect number of args, at most 1 expected\n", args[0]);
 	} else {
-	  cd(&owd, &pwd, homedir);
+	  if(argsct == 1)
+	    cd(&owd, &pwd, homedir, NULL);
+	  else
+	    cd(&owd, &pwd, homedir, args[1]);
 	}
       } else if(strcmp(args[0], "pwd") == 0) { /************************* pwd */
 	printf("Executing built-in command %s\n", args[0]);
@@ -197,7 +200,7 @@ char *which(char *command, struct pathelement *pathlist) {
   int pathlength;
   while(pathlist != NULL) {
     path = malloc(sizeof(char)*(strlen(command)+strlen(pathlist->element)+2));
-    //build a path then see if it can be accessed
+    /* build a path then see if it can be accessed */
     strcat(strcat(strcpy(path, pathlist->element), "/"), command);
     if(access(path, F_OK | X_OK) == 0)
       return path;
@@ -214,7 +217,7 @@ char *where(char *command, struct pathelement *pathlist) {
   ret = strcpy(ret, "");
   while(pathlist != NULL) {
     path = malloc(sizeof(char)*(strlen(command)+strlen(pathlist->element)+2));
-    //build a path, if it can be accessed append it to the return value
+    /* build a path, if it can be accessed append it to the return value */
     strcat(strcat(strcpy(path, pathlist->element), "/"), command);
     if(access(path, F_OK | X_OK) == 0) {
       ret = realloc(ret, sizeof(path)+sizeof(ret)+sizeof(char)*7);
@@ -226,8 +229,31 @@ char *where(char *command, struct pathelement *pathlist) {
   return ret;
 }
 
-void cd(char **owd, char **pwd, char *homedir) {
+void cd(char **owd, char **pwd, char *homedir, char *arg) {
 
+  if((arg == NULL) || (strcmp(arg, "~") == 0)) { /* go home */
+    strcpy(*pwd, *owd);
+    strcpy(*owd, homedir);
+    return;
+  } else if(strcmp(arg, "-") == 0) { /* go back */
+    if(chdir(*pwd) == 0) {
+      char *tempdir = malloc(sizeof(char)*(strlen(*owd)+1));
+      tempdir = strcpy(tempdir, *owd);
+      strcpy(tempdir, *owd);
+      strcpy(*owd, *pwd);
+      strcpy(*pwd, tempdir);
+      free(tempdir);
+      return;
+    }
+  } else if(chdir(arg) == 0){ /* go to path if valid */
+    strcpy(*pwd, *owd);
+    getcwd(*owd, PATH_MAX+1);
+    printf("goto path\n");
+    return;
+  } else {
+    printf("%s: no such directory\n", arg);
+    return;
+  }
 }
 
 void list (char *dir) {

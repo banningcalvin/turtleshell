@@ -15,7 +15,7 @@ char *where(char *command, struct pathelement *pathlist);
  * - goes to pwd and sets owd to pwd and pwd to owd
  * a valid path as an arg sets owd to that path and pwd to owd
  */
-void cd(char **owd, char **pwd, char *homedir);
+void cd(char **owd, char **pwd, char *homedir, char *arg);
 /* see man page for opendir() and readdir() and print out filenames for
      the directory passed */
 void list ( char *dir );
