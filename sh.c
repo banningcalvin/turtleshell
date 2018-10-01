@@ -81,7 +81,7 @@ int sh( int argc, char **argv, char **envp )
       /* check for each built in command and implement */
 
       /* if command is exit with 0 args, exit */
-      if(strcmp(args[0], "exit") == 0) {
+      if(strcmp(args[0], "exit") == 0) { /****************************** exit */
 	if (argsct == 1) {
 	  go = 0;
 	  break;
@@ -141,9 +141,9 @@ int sh( int argc, char **argv, char **envp )
 	    list(args[i]);
 	  }
 	}
-      } else if(strcmp(args[0], "pid") == 0) {
+      } else if(strcmp(args[0], "pid") == 0) { /************************* pid */
 	printf("Executing built-in command %s\n", args[0]);
-	
+	printf("[%d]\n", getpid());
       } else if(strcmp(args[0], "kill") == 0) {
 	printf("Executing built-in command %s\n", args[0]);
 	
