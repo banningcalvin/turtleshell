@@ -10,6 +10,12 @@ int sh( int argc, char **argv, char **envp);
 char *which(char *command, struct pathelement *pathlist);
 /* similarly loop through finding all locations of command */
 char *where(char *command, struct pathelement *pathlist);
+/* change directory
+ * ~ or no arg goes to homedir
+ * - goes to pwd and sets owd to pwd and pwd to owd
+ * a valid path as an arg sets owd to that path and pwd to owd
+ */
+void cd(char **owd, char **pwd, char *homedir);
 /* see man page for opendir() and readdir() and print out filenames for
      the directory passed */
 void list ( char *dir );

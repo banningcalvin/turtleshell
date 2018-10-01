@@ -23,7 +23,7 @@ int sh( int argc, char **argv, char **envp )
   /*  //arg = ??? */
   /* commandpath = path to command (which(command, pathList)) */
   /* p = ??? */
-  /* pwd = pointer to working dir from getcwd() */
+  /* pwd = previous working directory */
   /* owd = copy of pwd??? */
   char *command, *arg, *commandpath, *p, *pwd, *owd;
   /* array of arguments of length argsct */
@@ -93,7 +93,7 @@ int sh( int argc, char **argv, char **envp )
       } else if(strcmp(args[0], "which") == 0) { /********************* which */
 	printf("Executing built-in command %s\n", args[0]);
 	if(argsct < 2) {
-	  printf("Incorrect number of args, at least 1 expected\n");
+	  printf("%s: incorrect number of args, at least 1 expected\n", args[0]);
 	} else {
 	  for(i = 1; i < argsct; i++) {
 	    command = which(args[i], pathlist);
@@ -106,7 +106,7 @@ int sh( int argc, char **argv, char **envp )
       } else if(strcmp(args[0], "where") == 0) { /********************* where */
 	printf("Executing built-in command %s\n", args[0]);
 	if(argsct < 2) {
-	  printf("Incorrect number of args, at least 1 expected\n");
+	  printf("%s: incorrect number of args, at least 1 expected\n", args[0]);
 	} else {
 	  for(i = 1; i < argsct; i++) {
 	    command = where(args[i], pathlist);
@@ -116,12 +116,18 @@ int sh( int argc, char **argv, char **envp )
 	    }
 	  }
 	}
-      } else if(strcmp(args[0], "cd") == 0) {
+      } else if(strcmp(args[0], "cd") == 0) { /*************************** cd */
 	printf("Executing built-in command %s\n", args[0]);
-	
-      } else if(strcmp(args[0], "pwd") == 0) {
+	if(argsct > 2) {
+	  printf("%s: incorrect number of args, at most 1 expected\n", args[0]);
+	} else {
+	  cd(&owd, &pwd, homedir);
+	}
+      } else if(strcmp(args[0], "pwd") == 0) { /************************* pwd */
 	printf("Executing built-in command %s\n", args[0]);
-
+	if(argsct > 1)
+	  printf("%s: ignoring non-option arguments\n", args[0]);
+	printf("%s/\n", owd);
       } else if(strcmp(args[0], "list") == 0) { /*********************** list */
 	printf("Executing built-in command %s\n", args[0]);
 	if(argsct == 1) {
@@ -218,6 +224,10 @@ char *where(char *command, struct pathelement *pathlist) {
     free(path);
   }
   return ret;
+}
+
+void cd(char **owd, char **pwd, char *homedir) {
+
 }
 
 void list (char *dir) {
