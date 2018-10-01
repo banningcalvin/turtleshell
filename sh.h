@@ -19,6 +19,7 @@ void cd(char **owd, char **pwd, char *homedir, char *arg);
 /* see man page for opendir() and readdir() and print out filenames for
      the directory passed */
 void list (char *dir);
+
 void printenv(char **envp);
 
 
