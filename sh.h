@@ -25,9 +25,6 @@ void printenv(char **envp);
 int parse_command(char* commandline, char** args);
 /* empty argsct number of  args */
 void blank_args(int argsct, char **args);
-//catches C-c and C-z
-void siginthandler(int sig_num);
-void sigtstphandler(int sig_num);
 
 #define PROMPTMAX 32
 #define MAXARGS 10

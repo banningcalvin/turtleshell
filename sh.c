@@ -90,27 +90,48 @@ int sh( int argc, char **argv, char **envp )
 	  blank_args(argsct, args);
 	  continue;
 	}
-      } else if(strcmp(args[0], "which") == 0) {
+      } else if(strcmp(args[0], "which") == 0) { /********************* which */
 	printf("Executing built-in command %s\n", args[0]);
-	if(argsct != 2) {
-	  printf("Incorrect number of args, 1 expected\n");
-	} else
-	  which(args[1], pathlist);
-      } else if(strcmp(args[0], "where") == 0) {
+	if(argsct < 2) {
+	  printf("Incorrect number of args, at least 1 expected\n");
+	} else {
+	  for(i = 1; i < argsct; i++) {
+	    command = which(args[i], pathlist);
+	    if(command != NULL) {
+	      printf("%s\n", command);
+	      free(command);
+	    }
+	  }
+	}
+      } else if(strcmp(args[0], "where") == 0) { /********************* where */
 	printf("Executing built-in command %s\n", args[0]);
-	if(argsct != 2) {
-	  printf("Incorrect number of args, 1 expected\n");
-	} else
-	  where(args[1], pathlist);
+	if(argsct < 2) {
+	  printf("Incorrect number of args, at least 1 expected\n");
+	} else {
+	  for(i = 1; i < argsct; i++) {
+	    command = where(args[i], pathlist);
+	    if(command != NULL) {
+	      printf("%s", command);
+	      free(command);
+	    }
+	  }
+	}
       } else if(strcmp(args[0], "cd") == 0) {
 	printf("Executing built-in command %s\n", args[0]);
 	
       } else if(strcmp(args[0], "pwd") == 0) {
 	printf("Executing built-in command %s\n", args[0]);
-	
-      } else if(strcmp(args[0], "list") == 0) {
+
+      } else if(strcmp(args[0], "list") == 0) { /*********************** list */
 	printf("Executing built-in command %s\n", args[0]);
-	
+	if(argsct == 1) {
+	  list(owd);
+	} else {
+	  for(i = 1; i < argsct; i++) {
+	    printf("contents of %s:\n", args[i]);
+	    list(args[i]);
+	  }
+	}
       } else if(strcmp(args[0], "pid") == 0) {
 	printf("Executing built-in command %s\n", args[0]);
 	
@@ -165,24 +186,54 @@ int sh( int argc, char **argv, char **envp )
 /* see header file for function descriptions */
 
 char *which(char *command, struct pathelement *pathlist) {
-  if(!pathlist) return NULL; /* empty pathlist */
+  if(!pathlist) return NULL; /* null pathlist */
   char *path;
-
-  
+  int pathlength;
+  while(pathlist != NULL) {
+    path = malloc(sizeof(char)*(strlen(command)+strlen(pathlist->element)+2));
+    //build a path then see if it can be accessed
+    strcat(strcat(strcpy(path, pathlist->element), "/"), command);
+    if(access(path, F_OK | X_OK) == 0)
+      return path;
+    pathlist = pathlist->next;
+    free(path);
+  }
   return NULL;
 }
 
-/* list all instances */
 char *where(char *command, struct pathelement *pathlist) {
-  if(!pathlist) return NULL; /* empty pathlist */
-
-
-  
-  return NULL;
+  if(!pathlist) return NULL; /* null pathlist */
+  char *path;
+  char *ret = malloc(sizeof(char)*2);
+  ret = strcpy(ret, "");
+  while(pathlist != NULL) {
+    path = malloc(sizeof(char)*(strlen(command)+strlen(pathlist->element)+2));
+    //build a path, if it can be accessed append it to the return value
+    strcat(strcat(strcpy(path, pathlist->element), "/"), command);
+    if(access(path, F_OK | X_OK) == 0) {
+      ret = realloc(ret, sizeof(path)+sizeof(ret)+sizeof(char)*7);
+      ret = strcat(strcat(ret, path), "\n");
+    }
+    pathlist = pathlist->next;
+    free(path);
+  }
+  return ret;
 }
 
 void list (char *dir) {
-
+  DIR *d;
+  struct dirent *de;
+  if ((d = opendir(dir)) == NULL) {
+    printf("list: cannot access %s: No such file or directory\n", dir);
+    return;
+  }
+  de = readdir(d);
+  while (de != NULL) {
+    printf("%s\n", de->d_name);
+    de = readdir(d);
+  }
+  closedir(d);
+  return;
 }
 
 void printenv(char **envp) {
