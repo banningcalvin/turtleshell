@@ -172,9 +172,14 @@ int sh( int argc, char **argv, char **envp )
 	    }
 	  }
 	}
-      } else if(strcmp(args[0], "prompt") == 0) {
+      } else if(strcmp(args[0], "prompt") == 0) { /******************* prompt */
 	printf("Executing built-in command %s\n", args[0]);
-	
+	if (argsct == 1) { /* no args */
+	  printf("input prompt prefix: ");
+	  fgets(prompt, PROMPTMAX, stdin);
+	  prompt[strlen(prompt)-1] = '\0';
+	} else
+	  strcpy(prompt, args[1]);
       } else if(strcmp(args[0], "printenv") == 0) {
 	printf("Executing built-in command %s\n", args[0]);
 	
