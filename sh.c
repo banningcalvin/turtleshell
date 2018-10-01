@@ -9,9 +9,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "sh.h"
 
 /* see header file for function descriptions */
+
+extern pid_t cpid;
 
 int sh( int argc, char **argv, char **envp )
 {
@@ -263,13 +267,66 @@ int sh( int argc, char **argv, char **envp )
       /****************************************************************/
       /****************************************************************/
       /*  else  program to exec */
+      /* find it */
+      /* do fork(), execve() and waitpid() */
       else {
-	/* find it */
-	   /* do fork(), execve() and waitpid() */
-	if (1 == 2)
-	  printf("do for, execve and waitpid\n");
-	else
-	  fprintf(stderr, "%s: Command not found.\n", args[0]);
+	if(is_absolute(args[0]) == 0) { /* file is absolute */
+	  if(access(args[0], F_OK)) { /* file exists */
+	    if(access(args[0], X_OK)) { /* usr has exec perms */
+	      /* do fork(), execve(), and waitpid() */
+	      struct stat status;
+	      stat(args[0], &status);
+	      if(S_ISREG(status.st_mode)) {
+		cpid = fork();
+		if(cpid == 0) {
+		  printf("Executing %s\n", args[0]);
+		  if(execve(args[0], &args[0], envp) == -1) {
+		    printf("%s: Command not found.\n", args[0]);
+		  }
+		} else if(cpid > 0) {
+		  int status;
+		  waitpid(cpid, &status, 0);
+		  if(WEXITSTATUS(status) != 0) {
+		    printf("%s: Command exited with status: %d\n", args[0], WEXITSTATUS(status));
+		  }
+		} else { /* there was a forking issue */
+		  printf("%s: Unable to fork child process.\n", args[0]);
+		}
+		cpid = 0; /* reset child process id*/
+	      } else { /* file is directory */
+		fprintf(stderr, "%s: Cannot execute a directory.\n", args[0]);
+	      }
+	    } else { /* usr does not have perms */
+	      fprintf(stderr, "%s: Permission Denied.\n", args[0]);
+	    }
+	  } else { /* file does not exist */
+	    fprintf(stderr, "%s: Command not found.\n", args[0]);
+	  }
+	} else { /* is not absolute */
+	  command = which(args[0], pathlist);
+	  if(command == NULL) {
+	    printf("%s: Command not found.\n", command);
+	  } else {
+	    /* do fork(), execve(), and waitpid() */
+	    cpid = fork();
+	    if(cpid == 0) {
+	      printf("Executing external command %s\n", command);
+	      if(execve(command, &args[0], envp) == -1) {
+		printf("%s: Command not found.\n", command);
+	      }
+	    } else if(cpid > 0) {
+	      int status;
+	      waitpid(cpid, &status, 0);
+	      if(WEXITSTATUS(status) != 0) {
+		printf("%s: Command exited with status: %d\n", command, WEXITSTATUS(status));
+	      }
+	    } else {
+	      printf("%s: Unable to fork child process.\n", command);
+	    }
+	    cpid = 0; /* reset child process id */
+	  }
+	  free(command);
+	}
       }
 
       blank_args(argsct, args); /* empty argsct number of  args */
@@ -414,4 +471,13 @@ void blank_args(int argsct, char **args) {
     free(args[i]);
     args[i] = NULL;
     }
+}
+
+int is_absolute(char *command) {
+  /* if path starts at root or is a dot-slash path, return 0 */
+  if((command[0] == '/') ||
+     ((command[0] == '.') && (command[1] == '/'))) {
+    return 0;
+  } else
+    return 1;
 }

@@ -2,7 +2,9 @@
 #include <signal.h>
 #include <stdio.h>
 
-void sig_handler(int signal); 
+void sig_handler(int signal);
+
+pid_t cpid = 0;
 
 int main( int argc, char **argv, char **envp )
 {
@@ -15,6 +17,10 @@ void sig_handler(int signal)
 {
   switch(signal) {
   case SIGINT:
+    if (cpid != 0) {
+      kill(cpid, SIGINT);
+      printf("\n");
+    }
     break;
   case SIGTSTP:
     break;

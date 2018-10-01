@@ -51,7 +51,7 @@ struct alias* set_alias(struct alias *list, char *command, char *alias) {
 }
 
 char* get_alias(struct alias *list, char *command) {
-  struct tmp = list;
+  struct alias *tmp = list;
   while(tmp != NULL) {
     if(strcmp(tmp->command, command) == 0)
       return tmp->alias;
