@@ -271,8 +271,8 @@ int sh( int argc, char **argv, char **envp )
       /* do fork(), execve() and waitpid() */
       else {
 	if(is_absolute(args[0]) == 0) { /* file is absolute */
-	  if(access(args[0], F_OK)) { /* file exists */
-	    if(access(args[0], X_OK)) { /* usr has exec perms */
+	  if(!access(args[0], F_OK)) { /* file exists */
+	    if(!access(args[0], X_OK)) { /* usr has exec perms */
 	      /* do fork(), execve(), and waitpid() */
 	      struct stat status;
 	      stat(args[0], &status);
@@ -392,6 +392,7 @@ void cd(char **owd, char **pwd, char *homedir, char *arg) {
   if((arg == NULL) || (strcmp(arg, "~") == 0)) { /* go home */
     strcpy(*pwd, *owd);
     strcpy(*owd, homedir);
+    chdir(homedir);
     return;
   } else if(strcmp(arg, "-") == 0) { /* go back */
     if(chdir(*pwd) == 0) {
