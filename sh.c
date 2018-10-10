@@ -38,6 +38,8 @@ int sh( int argc, char **argv, char **envp )
   /* argsct = number of args in args */
   /* go = whether prompt is still running(1) or not (0) */
   int uid, i, status, argsct, go = 1;
+  /* whether to overwrite existing files or not with redirection */
+  int noclobber = 0;
   
   struct passwd *password_entry;
   
@@ -97,6 +99,22 @@ int sh( int argc, char **argv, char **envp )
 	  printf("%s: incorrect number of args, 0 expected\n", args[0]);
 	  blank_args(argsct, args);
 	  continue;
+	}
+      } else if(strcmp(args[0], "set") == 0) { /****************************** set */
+	if(argsct != 2) {
+	  printf("%s: incorrect number of args, 1 expected\n", args[0]);
+	} else if(strcmp(args[1], "noclobber") == 0) {
+	  noclobber = 1;
+	} else {
+	  printf("%s: no such variable %s\n", args[0], args[1]);
+	}
+      } else if(strcmp(args[0], "unset") == 0) { /************************** unset */
+	if(argsct != 2) {
+	  printf("%s: incorrect number of args, 1 expected\n", args[0]);
+	} else if(strcmp(args[1], "noclobber") == 0) {
+	  noclobber = 0;
+	} else {
+	  printf("%s: no such variable %s\n", args[0], args[1]);
 	}
       } else if(strcmp(args[0], "which") == 0) { /********************* which */
 	printf("Executing built-in command %s\n", args[0]);
