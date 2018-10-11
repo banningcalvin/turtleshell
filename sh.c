@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <pthread.h>
 #include "sh.h"
 
 /* see header file for function descriptions */
@@ -88,9 +89,8 @@ int sh( int argc, char **argv, char **envp )
       if((argsct = parse_command(commandline, args)) == 0)
 	continue;
 
-      /* check for each built in command and implement */
-
-      /* if command is exit with 0 args, exit */
+      /************************************************************************/
+      /************************************************************************/
       if(strcmp(args[0], "exit") == 0) { /****************************** exit */
 	if (argsct == 1) {
 	  go = 0;
@@ -100,7 +100,7 @@ int sh( int argc, char **argv, char **envp )
 	  blank_args(argsct, args);
 	  continue;
 	}
-      } else if(strcmp(args[0], "set") == 0) { /****************************** set */
+      } else if(strcmp(args[0], "set") == 0) { /************************* set */
 	if(argsct != 2) {
 	  printf("%s: incorrect number of args, 1 expected\n", args[0]);
 	} else if(strcmp(args[1], "noclobber") == 0) {
@@ -108,7 +108,7 @@ int sh( int argc, char **argv, char **envp )
 	} else {
 	  printf("%s: no such variable %s\n", args[0], args[1]);
 	}
-      } else if(strcmp(args[0], "unset") == 0) { /************************** unset */
+      } else if(strcmp(args[0], "unset") == 0) { /********************* unset */
 	if(argsct != 2) {
 	  printf("%s: incorrect number of args, 1 expected\n", args[0]);
 	} else if(strcmp(args[1], "noclobber") == 0) {
@@ -295,22 +295,38 @@ int sh( int argc, char **argv, char **envp )
 	      struct stat status;
 	      stat(args[0], &status);
 	      if(S_ISREG(status.st_mode)) {
-		cpid = fork();
-		if(cpid == 0) {
-		  printf("Executing %s\n", args[0]);
-		  if(execve(args[0], &args[0], envp) == -1) {
-		    printf("%s: Command not found.\n", args[0]);
+		if(strcmp(args[argsct -1], "&") == 0) { /* background execution */
+		  /* blank '&' arg */
+		  //free(args[argsct - 1]);
+		  //argsct--;
+
+		  
+		  struct threadargs *targ = malloc(sizeof(struct threadargs));
+		  pthread_t td;
+		  int status = pthread_create(&td, NULL, pthread_exec_path, (void*)targ);
+		  waitpid(td, &status, 0);
+		  pthread_join(td, NULL);
+		  
+
+
+		} else { /* foreground execution */
+		  cpid = fork();
+		  if(cpid == 0) {
+		    printf("Executing %s\n", args[0]);
+		    if(execve(args[0], &args[0], envp) == -1) {
+		      printf("%s: Command not found.\n", args[0]);
+		    }
+		  } else if(cpid > 0) {
+		    int status;
+		    waitpid(cpid, &status, 0);
+		    if(WEXITSTATUS(status) != 0) {
+		      printf("%s: Command exited with status: %d\n", args[0], WEXITSTATUS(status));
+		    }
+		  } else { /* there was a forking issue */
+		    printf("%s: Unable to fork child process.\n", args[0]);
 		  }
-		} else if(cpid > 0) {
-		  int status;
-		  waitpid(cpid, &status, 0);
-		  if(WEXITSTATUS(status) != 0) {
-		    printf("%s: Command exited with status: %d\n", args[0], WEXITSTATUS(status));
-		  }
-		} else { /* there was a forking issue */
-		  printf("%s: Unable to fork child process.\n", args[0]);
+		  cpid = 0; /* reset child process id*/
 		}
-		cpid = 0; /* reset child process id*/
 	      } else { /* file is directory */
 		fprintf(stderr, "%s: Cannot execute a directory.\n", args[0]);
 	      }
@@ -326,22 +342,41 @@ int sh( int argc, char **argv, char **envp )
 	    printf("%s: Command not found.\n", command);
 	  } else {
 	    /* do fork(), execve(), and waitpid() */
-	    cpid = fork();
-	    if(cpid == 0) {
-	      printf("Executing external command %s\n", command);
-	      if(execve(command, &args[0], envp) == -1) {
-		printf("%s: Command not found.\n", command);
+	    if(strcmp(args[argsct -1], "&") == 0) { /* background execution */
+	      /* blank '&' arg */
+	      //free(args[argsct - 1]);
+	      //argsct--;
+	      
+	      struct threadargs *targ = malloc(sizeof(struct threadargs));
+	      targ->args = args;
+	      targ->command = command;
+	      targ->envp = envp;
+
+	      
+	      pthread_t td;
+	      int status = pthread_create(&td, NULL, pthread_exec_external, (void*)targ);
+	      waitpid(td, &status, 0);
+	      pthread_join(td, NULL);
+
+	      
+	    } else { /* foreground execution */
+	      cpid = fork();
+	      if(cpid == 0) {
+		printf("Executing external command %s\n", command);
+		if(execve(command, &args[0], envp) == -1) {
+		  printf("%s: Command not found.\n", command);
+		}
+	      } else if(cpid > 0) {
+		int status;
+		waitpid(cpid, &status, 0);
+		if(WEXITSTATUS(status) != 0) {
+		  printf("%s: Command exited with status: %d\n", command, WEXITSTATUS(status));
+		}
+	      } else {
+		printf("%s: Unable to fork child process.\n", command);
 	      }
-	    } else if(cpid > 0) {
-	      int status;
-	      waitpid(cpid, &status, 0);
-	      if(WEXITSTATUS(status) != 0) {
-		printf("%s: Command exited with status: %d\n", command, WEXITSTATUS(status));
-	      }
-	    } else {
-	      printf("%s: Unable to fork child process.\n", command);
+	      cpid = 0; /* reset child process id */
 	    }
-	    cpid = 0; /* reset child process id */
 	  }
 	  free(command);
 	}
@@ -361,6 +396,42 @@ int sh( int argc, char **argv, char **envp )
   free_alias(aliaslist);
   free_history(hist);
   return 0;
+}
+
+
+
+/****************************************************************/
+/****************** pthread execution functions *****************/
+/****************************************************************/
+
+void* pthread_exec_path(void *arg) {
+  printf("exec path\n");
+  struct threadargs *targ = (struct threadargs*)arg;
+  free(targ);
+  return ((void*)0);
+}
+
+void* pthread_exec_external(void *arg) {
+  struct threadargs *targ = (struct threadargs*)arg;
+
+  pid_t cpid = fork();
+  if(cpid == 0) {
+    printf("Executing external command %s\n", targ->command);
+    if(execve(targ->command, targ->args, targ->envp) == -1) {
+      printf("%s: Command not found.\n", targ->command);
+    }
+  } else if(cpid > 0) {
+    int status;
+    waitpid(cpid, &status, 0);
+    if(WEXITSTATUS(status) != 0) {
+      printf("%s: Command exited with status: %d\n", targ->command, WEXITSTATUS(status));
+    }
+  } else {
+    printf("%s: Unable to fork child process.\n", targ->command);
+  }
+
+  free(targ);
+  return ((void*)0);
 }
 
 

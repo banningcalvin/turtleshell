@@ -2,6 +2,18 @@
 #include "alias.h"
 #include "history.h"
 
+/* struct for sending args to pthreads */
+struct threadargs {
+  int argsct; /* number of args in args */
+  char** args; /* cli args */
+  char* command; /* path to command */
+  char** envp;
+};
+
+/*** pthread execution functions ***/
+void* pthread_exec_path(void *arg);
+void* pthread_exec_external(void *arg);
+
 int pid;
 int sh( int argc, char **argv, char **envp);
 
