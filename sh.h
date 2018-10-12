@@ -4,7 +4,6 @@
 
 /* struct for sending args to pthreads */
 struct threadargs {
-  int argsct; /* number of args in args */
   char** args; /* cli args */
   char* command; /* path to command */
   char** envp;

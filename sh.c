@@ -296,19 +296,29 @@ int sh( int argc, char **argv, char **envp )
 	      stat(args[0], &status);
 	      if(S_ISREG(status.st_mode)) {
 		if(strcmp(args[argsct -1], "&") == 0) { /* background execution */
+		  printf("Forking into background\n");
 		  /* blank '&' arg */
-		  //free(args[argsct - 1]);
-		  //argsct--;
+		  free(args[argsct - 1]);
+		  args[argsct - 1] = NULL;
+		  argsct--;
 
-		  
+		  /* build up thread argument struct */
 		  struct threadargs *targ = malloc(sizeof(struct threadargs));
+		  
+		  targ->args = args;
+		  targ->command = command;
+		  targ->envp = envp;
+		  
+		  /* create pthread */
 		  pthread_t td;
 		  int status = pthread_create(&td, NULL, pthread_exec_path, (void*)targ);
 		  waitpid(td, &status, 0);
 		  pthread_join(td, NULL);
+
+
+
+
 		  
-
-
 		} else { /* foreground execution */
 		  cpid = fork();
 		  if(cpid == 0) {
@@ -343,20 +353,28 @@ int sh( int argc, char **argv, char **envp )
 	  } else {
 	    /* do fork(), execve(), and waitpid() */
 	    if(strcmp(args[argsct -1], "&") == 0) { /* background execution */
+	      printf("Forking into background\n");
 	      /* blank '&' arg */
-	      //free(args[argsct - 1]);
-	      //argsct--;
-	      
+	      free(args[argsct - 1]);
+	      args[argsct - 1] = NULL;
+	      argsct--;
+
+	      /* build up thread argument struct */
 	      struct threadargs *targ = malloc(sizeof(struct threadargs));
 	      targ->args = args;
 	      targ->command = command;
 	      targ->envp = envp;
 
-	      
+	      /* create pthread */
 	      pthread_t td;
 	      int status = pthread_create(&td, NULL, pthread_exec_external, (void*)targ);
 	      waitpid(td, &status, 0);
 	      pthread_join(td, NULL);
+
+
+
+
+
 
 	      
 	    } else { /* foreground execution */
@@ -407,6 +425,24 @@ int sh( int argc, char **argv, char **envp )
 void* pthread_exec_path(void *arg) {
   printf("exec path\n");
   struct threadargs *targ = (struct threadargs*)arg;
+
+
+  /* pid_t cpid = fork(); */
+  /* if(cpid == 0) { */
+  /*   printf("Executing %s\n", args[0]); */
+  /*   if(execve(args[0], &args[0], envp) == -1) { */
+  /*     printf("%s: Command not found.\n", args[0]); */
+  /*   } */
+  /* } else if(cpid > 0) { */
+  /*   int status; */
+  /*   waitpid(cpid, &status, 0); */
+  /*   if(WEXITSTATUS(status) != 0) { */
+  /*     printf("%s: Command exited with status: %d\n", args[0], WEXITSTATUS(status)); */
+  /*   } */
+  /* } else { /\* there was a forking issue *\/ */
+  /*   printf("%s: Unable to fork child process.\n", args[0]); */
+  /* } */
+  
   free(targ);
   return ((void*)0);
 }
@@ -414,6 +450,8 @@ void* pthread_exec_path(void *arg) {
 void* pthread_exec_external(void *arg) {
   struct threadargs *targ = (struct threadargs*)arg;
 
+  sleep(3);
+  
   pid_t cpid = fork();
   if(cpid == 0) {
     printf("Executing external command %s\n", targ->command);
