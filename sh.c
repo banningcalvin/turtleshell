@@ -12,11 +12,21 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pthread.h>
+#include <utmpx.h>
 #include "sh.h"
 
 /* see header file for function descriptions */
 
 extern pid_t cpid;
+
+
+//global structs for watchuser and watchmail
+struct strlist *watchuserhead;
+struct maillist *watchmailhead;
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+
 
 int sh( int argc, char **argv, char **envp )
 {
@@ -41,7 +51,14 @@ int sh( int argc, char **argv, char **envp )
   int uid, i, status, argsct, go = 1;
   /* whether to overwrite existing files or not with redirection */
   int noclobber = 0;
+	
+	/* Local variables for watchuser and watchmail implementation */
+	int watchthread, mailthread = 0;
+
+	watchuserhead = NULL;
+  watchmailhead = NULL;
   
+
   struct passwd *password_entry;
   
   char *homedir;
@@ -279,6 +296,158 @@ int sh( int argc, char **argv, char **envp )
 	  break;
 	default:
 	  printf("setenv: Too many arguments.\n");
+	}
+      }
+
+			//watch mail
+			else if(strcmp(args[0], "watchmail") == 0){
+	printf("Watch mail initiated\n");
+
+	if(args[2] == NULL){
+	  //two arguemnts, meaning start watching one file
+	  struct stat buff;
+	  int exists = stat(args[1], &buff);
+	  printf("exists? %d\n", exists);
+	  if(exists == 0){
+	    pthread_t mail_t;
+
+	    char* filepath = (char *)malloc(strlen(args[1]));
+	    strcpy(filepath, args[1]);
+	    printf("%s\n", filepath);
+	    pthread_create(&mail_t, NULL, watchmail, (void *)filepath);
+	    
+	    if(mailthread == 0 || watchmailhead == NULL){
+	      mailthread = 1;
+	      watchmailhead = malloc(sizeof(struct maillist));
+	      watchmailhead->str = malloc(sizeof(strlen(filepath)));
+	      strcpy(watchmailhead->str, filepath);
+	      watchmailhead->id = mail_t;
+	    }else{
+	      struct maillist *tmp = watchmailhead;
+	      while(tmp->next != NULL){
+		tmp = tmp->next;
+	      }
+	      tmp->next = malloc(sizeof(struct maillist));
+	      tmp->next->str = malloc(sizeof(strlen(filepath)));
+	      strcpy(tmp->next->str, filepath);
+	      tmp->next->id = mail_t;
+	    }
+	  }
+	}else if(args[2] != NULL){
+	  //Remove head from watchlist
+	  if(strcmp(watchmailhead->str, args[1]) == 0){
+	    struct maillist *tmp = watchmailhead;
+	    watchmailhead = watchmailhead->next;
+	    pthread_cancel(tmp->id);
+	    int pj = pthread_join(tmp->id, NULL);
+	    printf("joined? %d\n", pj);
+	  }else{
+	    //Remove another node from watchlist
+	    struct maillist *tmp2 = watchmailhead;
+	    while(strcmp(tmp2->next->str, args[1]) != 0){
+	      tmp2 = tmp2->next;
+	    }
+	    if(strcmp(tmp2->next->str, args[1]) == 0){
+	      pthread_cancel(tmp2->next->id);
+	      printf("joining thread\n");
+	      int j = pthread_join(tmp2->next->id, NULL);
+	      printf("joined? %d\n", j);
+	      tmp2->next = tmp2->next->next;
+	    }else{
+	      printf("File not being watched\n");
+	    }
+	  }
+	}
+      }
+      //watchuser command
+      else if(strcmp(args[0], "watchuser") == 0){
+	printf("Executing built-in command watchuser\n");
+
+	if(watchthread == 0){
+	  printf("Starting watchuser thread...\n");
+	  watchthread = 1;
+	  pthread_t watchuser_t;
+	  pthread_create(&watchuser_t, NULL, watchuser, args[1]);
+	}
+
+	if(args[1] == NULL){
+	  printf("Usage for watchuser: watchuser [user] [off (optional)]\n");
+	}
+	else{
+	  pthread_mutex_lock(&mutex);
+	  if(args[2] != NULL && strcmp(args[2], "off") == 0){//remove from linked list of users to watch
+	    struct strlist *tmp = watchuserhead;
+
+	    while(tmp != NULL){
+	      if(strcmp(tmp->str, args[1]) == 0){
+		if(tmp->prev == NULL){//deleting the head of the list
+		  printf("Deleting head %s\n", tmp->str);
+		  if(tmp->next == NULL){
+		    watchuserhead = NULL;
+		  }
+		  else{
+		    watchuserhead = tmp->next;
+		    watchuserhead->prev = NULL;
+		  }
+		  free(tmp->str);
+		  free(tmp);
+		  tmp = watchuserhead;
+		}
+		else{
+		  printf("Deleting %s\n", tmp->str);
+		  if(tmp->next == NULL){
+		    tmp->prev->next = NULL;
+		  }
+		  else{
+		    tmp->prev->next = tmp->next;
+		  }
+		  free(tmp->str);
+		  free(tmp);
+		  tmp = watchuserhead;
+		}
+	      }
+	      else{
+		tmp = tmp->next;
+	      }
+	    }
+
+	    printf("Watchuser list is now..\n");
+	    tmp = watchuserhead;
+	    while(tmp != NULL){
+	      printf("User: %s\n", tmp->str);
+	      tmp = tmp->next;
+	    }
+
+	  }
+	  else{//add to linked list of users to watch
+
+	    //TO-DO: add mutex locks so that watchuser_t doesn't write tmp->status
+
+	    if(watchuserhead == NULL){
+	      printf("Adding new head: %s\n", args[1]);
+	      struct strlist *tmp;
+	      tmp = malloc(sizeof(struct strlist));
+	      tmp->next = NULL;
+	      tmp->prev = NULL;
+	      tmp->status = 0;
+	      tmp->str = malloc((sizeof(char) * strlen(args[1])) + 1);
+	      strcpy(tmp->str, args[1]);
+	      watchuserhead = tmp;
+	    }
+	    else{
+	      printf("Adding to list: %s\n", args[1]);
+	      struct strlist *tmp;
+	      tmp = malloc(sizeof(struct strlist));
+	      tmp->str = malloc((sizeof(char) * strlen(args[1])) + 1);
+	      strcpy(tmp->str, args[1]);
+	      tmp->next = watchuserhead;
+	      tmp->prev = NULL;
+	      tmp->status = 0;
+	      watchuserhead->prev = tmp;
+	      watchuserhead = tmp;
+	    }
+	  }
+	  pthread_mutex_unlock(&mutex);
 	}
       }
       /****************************************************************/
@@ -557,6 +726,54 @@ void list (char *dir) {
   return;
 }
 
+//watchmail
+ void *watchmail(void *arg){
+   char* file = (char*)arg;
+   struct stat path;
+   
+   stat(file, &path);
+   long old = (long)path.st_size;
+   time_t start;
+   while(1){
+     time(&start);
+     stat(file, &path);
+     if((long)path.st_size != old){
+       printf("\nBEEP! You got mail in %s at time %s\n", file, ctime(&start));
+       fflush(stdout);
+       old = (long)path.st_size;
+     }
+     sleep(1);
+   }
+ }
+
+   
+ 
+//watchuser
+void *watchuser(void *arg){
+  
+  struct utmpx *up;
+
+  while(1){
+    setutxent();
+    
+    while((up = getutxent())){
+      if(up->ut_type == USER_PROCESS){
+
+	pthread_mutex_lock(&mutex);
+	struct strlist *tmp;
+	tmp = watchuserhead;
+	while(tmp != NULL){
+	  if((tmp->status == 0) && strcmp(tmp->str, up->ut_user) == 0){
+	    tmp->status = 1;
+	    printf("\n%s has logged on [%s] from [%s]\n", up->ut_user, up->ut_line, up->ut_host);
+	  }
+	  tmp = tmp->next;
+	}
+	pthread_mutex_unlock(&mutex);
+      }
+    }
+	}
+}
 
 /****************************************************************/
 /*********************** Helper functions ***********************/

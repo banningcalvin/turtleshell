@@ -3,7 +3,7 @@ CC=gcc
 #CC=gcc -Wall
 
 mysh: sh.o get_path.o alias.o history.o main.c 
-	$(CC) -g -lpthread main.c sh.o get_path.o alias.o history.o -o mysh
+	$(CC) -g -pthread main.c sh.o get_path.o alias.o history.o -o mysh
 
 sh.o: sh.c sh.h
 	$(CC) -g -c sh.c

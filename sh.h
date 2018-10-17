@@ -1,6 +1,8 @@
 #include "get_path.h"
 #include "alias.h"
 #include "history.h"
+#include <pthread.h>
+
 
 /* struct for sending args to pthreads */
 struct threadargs {
@@ -43,6 +45,22 @@ int parse_command(char* commandline, char** args);
 void blank_args(int argsct, char **args);
 /* returns 0 if a path is absolute, 1 if it is not (./ls vs ls) */
 int is_absolute(char *command);
+
+void *watchuser(void *arg);
+ void *watchmail(void *arg);
+
+struct maillist{
+  char *str;
+  pthread_t id;
+  struct maillist *next;
+};
+  
+struct strlist{
+  char *str;
+  int status;
+  struct strlist *next;
+  struct strlist *prev;
+};
 
 #define PROMPTMAX 32
 #define MAXARGS 10

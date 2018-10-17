@@ -4,80 +4,74 @@ John Maloy
 
 Test Cases:
 
-[return]
-Ctrl-D
-Ctrl-Z
-Cotrl-C
-which					; test which
-which ls
-ls					; execute it
-[return]
-Ctrl-D					; make sure still work
-Ctrl-Z
-Ctrl-C
-ls -l					; test passing arguments
-ls -l -a /proc/tty
-ls -l -F /proc/tty
-ls -l -F /etc/perl
-ls -l -a /etc/perl
-where					; test where
-where ls
-/bin/ls -l -g			; test absolutes and passing args
-/bin/ls -l
-file *					; test out * wildcard
-ls *
-ls *.c
-ls -l sh.*
-ls -l s*.c
-ls -l s*h.c
-ls sh.?					; test out ? wildcard
-ls ?h.c	
-ls *.?					; test combination of ? and *	
-blah					; try a command that doesn't exist
-/blah					; an absolute path that doesn't exist
-ls -l /blah
-/usr/bin				; try to execute a directory
-/bin/ls -la /
-file /bin/ls /bin/rm
-which ls rm				; test multiple args
-where ls rm
-list					; test list
-list / /usr/proc/bin
-cd 					; cd to home
 pwd
-cd /blah				; non-existant
-cd /usr/bin /usr/ucb			; too many args
-cd -					; should go back to project dir
-pwd
-more sh.c   (and give a Crtl-C)		; more should exit
-cd /usr/bin
-pwd
-./ls /					; test more absolutes
-../bin/ls /
-history					; test history
-history 15
-history
-history 5
-history
-pid					; get pid for later use
-kill
-kill pid-of-shell			; test default
-kill -1 pid-of-shell			; test sending a signal, should kill
-					; the shell, so restart a new one
-prompt	    (and enter some prompt prefix)
-prompt 361shell
-alias changedir cd
-changedir ..				; should go up a directory
-alias	  				; list all alias
-printenv PATH
-printenv
-setenv
-setenv TEST
-printenv TEST
-setenv TEST testing
-printenv TEST
-setenv TEST testing more
-setenv HOME /
-cd
-pwd
-exit
+    ls &
+    ls -l &
+    cd /
+    sleep 20 &
+    ls & 			; run before sleep is done
+    pid
+    tty
+    /bin/ps -lfu USERNAME	; replace USERNAME with your own  
+    cd
+    cd [project test dir of your choosing]
+    pwd
+    ls -l
+    rm -f mail1 mail2
+    touch mail1			; create this file
+    watchmail mail1
+    echo hi >> mail1
+    echo HiThere > mail2	; create another file
+    watchmail mail2
+    echo there >> mail1
+    echo Subject: >> mail2
+    cat mail1
+    cat mail2
+    watchmail mail1 off
+    echo bye >> mail1
+    echo bye >> mail2		; still watching this one
+
+    rm -f test1 test2 test3 test4 test5 test6 test7 test8
+    test-1+2 > test1
+    test-1+2 >> test2
+    test-1+2 >& test3
+    test-1+2 >>& test4
+    cat test1 test2 test3 test4
+    test-1+2 > test1
+    test-1+2 >> test2
+    test-1+2 >& test3
+    test-1+2 >>& test4
+    cat test1 test2 test3 test4
+
+    noclobber				; turn noclobber on
+    test-1+2 > test5
+    test-1+2 >> test6
+    test-1+2 >& test7
+    test-1+2 >>& test8
+    cat test5 test6 test7 test8
+    test-1+2 > test5
+    test-1+2 >> test6
+    test-1+2 >& test7
+    test-1+2 >>& test8
+    cat test5 test6 test7 test8
+
+    grep hello < test8
+    grep error < test8
+
+    rm -f test9 test10 test11 test12
+    noclobber				; turn noclobber off
+    test-1+2 > test9
+    test-1+2 >> test10
+    test-1+2 >& test11
+    test-1+2 >>& test12
+    cat test9 test10 test11 test12
+
+    ls | fgrep .c                   ; show pipes works
+    ./test-1+2 | grep  hello
+    ./test-1+2 |& grep hello
+    ./test-1+2 | grep output
+    ./test-1+2 |& grep output
+    ./test-1+2 |& grep error
+
+    pid                                        ; zombie avoidance checking
+    /bin/ps -lfu USERNAME | grep defunct       ; replace USERNAME with your username
